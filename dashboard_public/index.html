@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chairside — Clinic Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16302B;
+    --paper:#F7F8F4;
+    --panel:#FFFFFF;
+    --teal:#2E6F64;
+    --teal-dim:#DCE7E3;
+    --gold:#B9873E;
+    --gold-dim:#F1E4CB;
+    --coral:#AF4F39;
+    --coral-dim:#F3DED7;
+    --line:#DCD8CC;
+    --muted:#6B7570;
+    --slot-empty:#EFEEE7;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces', serif;
+    margin:0;
+    font-weight:600;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  a{color:inherit;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:20px 32px;
+    border-bottom:1px solid var(--line);
+    background:var(--panel);
+    flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:36px;height:36px;border-radius:8px;
+    background:var(--teal);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-family:'Fraunces',serif;font-weight:600;font-size:16px;
+    flex-shrink:0;
+  }
+  .brand-text h1{font-size:20px;letter-spacing:0.2px;}
+  .brand-text span{font-size:12px;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;}
+
+  .conn{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .conn input, .conn select{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:var(--paper);
+    color:var(--ink);
+    min-width:220px;
+  }
+  .btn{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:500;
+    font-size:13px;
+    padding:8px 14px;
+    border-radius:6px;
+    border:1px solid var(--teal);
+    background:var(--teal);
+    color:#fff;
+    cursor:pointer;
+  }
+  .btn:hover{background:#255a51;}
+  .btn.ghost{background:transparent;color:var(--teal);}
+  .btn.ghost:hover{background:var(--teal-dim);}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:#9aa39d;display:inline-block;}
+  .status-dot.live{background:#3f8f5f;}
+  .status-dot.down{background:var(--coral);}
+
+  /* ---------- Layout ---------- */
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 32px 64px;}
+  .eyebrow{
+    font-size:11px;letter-spacing:1.4px;text-transform:uppercase;
+    color:var(--muted); font-weight:500; margin-bottom:6px;
+  }
+  section{margin-top:36px;}
+  section:first-of-type{margin-top:0;}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+  .section-head h2{font-size:20px;}
+  .section-sub{font-size:12.5px;color:var(--muted);}
+
+  /* ---------- Stat cards ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .stat{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px 18px 16px;
+  }
+  .stat .eyebrow{margin-bottom:10px;}
+  .stat .num{font-family:'Fraunces',serif;font-size:34px;font-weight:600;line-height:1;}
+  .stat .sub{font-size:12px;color:var(--muted);margin-top:6px;}
+  .stat.accent-teal{border-top:3px solid var(--teal);}
+  .stat.accent-gold{border-top:3px solid var(--gold);}
+  .stat.accent-coral{border-top:3px solid var(--coral);}
+  .stat.accent-ink{border-top:3px solid var(--ink);}
+
+  /* ---------- Chairside timeline (signature element) ---------- */
+  .timeline-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:22px 22px 18px;
+  }
+  .timeline-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;flex-wrap:wrap;gap:6px;}
+  .timeline-meta .date{font-family:'Fraunces',serif;font-size:17px;}
+  .timeline-meta .hours{font-size:12.5px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+  .rail{
+    display:flex;
+    gap:3px;
+    overflow-x:auto;
+    padding-bottom:8px;
+  }
+  .slot{
+    flex:0 0 auto;
+    width:74px;
+    height:64px;
+    border-radius:6px;
+    background:var(--slot-empty);
+    border:1px dashed #C9C6BB;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-size:11px;
+    position:relative;
+  }
+  .slot .t{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);position:absolute;top:4px;left:6px;}
+  .slot.booked{
+    background:var(--teal);
+    border:1px solid var(--teal);
+    color:#fff;
+  }
+  .slot.booked .t{color:rgba(255,255,255,0.75);}
+  .slot.booked .name{
+    font-family:'IBM Plex Sans',sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    margin-top:10px;
+    text-align:center;
+    padding:0 4px;
+  }
+  .slot.booked.cancelled{background:var(--coral-dim);border-color:var(--coral);}
+  .slot.booked.cancelled .name{color:var(--coral);}
+  .slot.booked.cancelled .t{color:var(--coral);opacity:0.8;}
+  .slot.booked.completed{background:var(--gold-dim);border-color:var(--gold);}
+  .slot.booked.completed .name{color:#7a5a20;}
+  .slot.booked.completed .t{color:#7a5a20;opacity:0.8;}
+  .legend{display:flex;gap:18px;margin-top:14px;font-size:12px;color:var(--muted);flex-wrap:wrap;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .swatch{width:10px;height:10px;border-radius:3px;display:inline-block;}
+
+  /* ---------- Table ---------- */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .filters input, .filters select{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:13px;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:var(--panel);
+    color:var(--ink);
+  }
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  thead th{
+    text-align:left;
+    font-size:11px;letter-spacing:0.8px;text-transform:uppercase;
+    color:var(--muted);font-weight:500;
+    padding:12px 14px;
+    border-bottom:1px solid var(--line);
+    background:#FBFAF6;
+  }
+  tbody td{
+    padding:12px 14px;
+    font-size:13.5px;
+    border-bottom:1px solid var(--line);
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#FAFAF6;}
+  td.time, td.id{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--muted);}
+  .pill{
+    display:inline-block;
+    font-size:11px;font-weight:500;
+    padding:3px 9px;border-radius:100px;
+  }
+  .pill.Scheduled{background:var(--teal-dim);color:var(--teal);}
+  .pill.Completed{background:var(--gold-dim);color:#7a5a20;}
+  .pill.Cancelled{background:var(--coral-dim);color:var(--coral);}
+  .pill.No-Show{background:#EDE9E2;color:#6B6459;}
+
+  /* ---------- Complaints ---------- */
+  .complaint-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-left:3px solid var(--coral);
+    border-radius:8px;
+    padding:14px 16px;
+    margin-bottom:10px;
+  }
+  .complaint-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;}
+  .complaint-head .who{font-weight:600;font-size:14px;}
+  .complaint-head .when{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--muted);}
+  .complaint-contact{font-size:12px;color:var(--muted);margin-top:2px;}
+  .complaint-body{font-size:13.5px;margin-top:8px;line-height:1.5;}
+  .complaint-ticket{
+    display:inline-block;margin-top:8px;
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--coral);
+  }
+
+  .empty{
+    padding:32px 20px;text-align:center;color:var(--muted);
+    background:var(--panel);border:1px dashed var(--line);border-radius:10px;
+    font-size:13.5px;
+  }
+  .error-banner{
+    background:var(--coral-dim);border:1px solid var(--coral);color:#7a2f1e;
+    padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:20px;
+    display:none;
+  }
+
+  @media (max-width: 860px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .wrap{padding:20px 16px 48px;}
+    .topbar{padding:16px;}
+  }
+  @media (max-width: 520px){
+    .stats{grid-template-columns:1fr;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">M</div>
+    <div class="brand-text">
+      <h1>Chairside</h1>
+      <span>Muhammad Yousuf Dental Clinic — Ops Dashboard</span>
+    </div>
+  </div>    
+  <div class="conn">
+    <span class="status-dot" id="statusDot"></span>
+    <input id="apiBase" type="text" value="http://localhost:8002" spellcheck="false" />
+    <select id="doctorSelect"><option>Dr. Muhammad Zubair Yousuf</option></select>
+    <button class="btn ghost" id="refreshBtn">Refresh</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <!-- Stat cards -->
+  <section>
+    <div class="section-head">
+      <h2>Overview</h2>
+      <span class="section-sub" id="overviewSub">—</span>
+    </div>
+    <div class="stats" id="stats">
+      <div class="stat accent-teal">
+        <div class="eyebrow">Today</div>
+        <div class="num" id="statToday">–</div>
+        <div class="sub" id="statTodaySub">appointments</div>
+      </div>
+      <div class="stat accent-ink">
+        <div class="eyebrow">This week</div>
+        <div class="num" id="statWeek">–</div>
+        <div class="sub" id="statWeekSub">Mon – Sun</div>
+      </div>
+      <div class="stat accent-gold">
+        <div class="eyebrow">Total scheduled</div>
+        <div class="num" id="statScheduled">–</div>
+        <div class="sub">upcoming, unresolved</div>
+      </div>
+      <div class="stat accent-coral">
+        <div class="eyebrow">Complaints logged</div>
+        <div class="num" id="statComplaints">–</div>
+        <div class="sub">all time</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Chairside timeline -->
+  <section>
+    <div class="section-head">
+      <h2>Today's chair</h2>
+      <span class="section-sub" id="chairSub">7:30 PM – 11:30 PM · 30-min slots</span>
+    </div>
+    <div class="timeline-card">
+      <div class="timeline-meta">
+        <span class="date" id="timelineDate">—</span>
+        <span class="hours" id="timelineHours">—</span>
+      </div>
+      <div class="rail" id="rail"><div class="empty">Loading today's schedule…</div></div>
+      <div class="legend">
+        <span><span class="swatch" style="background:var(--teal)"></span>Scheduled</span>
+        <span><span class="swatch" style="background:var(--gold-dim);border:1px solid var(--gold)"></span>Completed</span>
+        <span><span class="swatch" style="background:var(--coral-dim);border:1px solid var(--coral)"></span>Cancelled</span>
+        <span><span class="swatch" style="background:var(--slot-empty);border:1px dashed #C9C6BB"></span>Open</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Appointments table -->
+  <section>
+    <div class="section-head">
+      <h2>Appointments</h2>
+      <span class="section-sub" id="apptCountSub">—</span>
+    </div>
+    <div class="filters">
+      <input id="fStart" type="date" />
+      <input id="fEnd" type="date" />
+      <select id="fStatus">
+        <option value="">Any status</option>
+        <option>Scheduled</option>
+        <option>Completed</option>
+        <option>Cancelled</option>
+        <option>No-Show</option>
+      </select>
+      <input id="fSearch" type="text" placeholder="Search name or phone…" style="min-width:200px;" />
+      <button class="btn" id="applyFilters">Apply</button>
+      <button class="btn ghost" id="clearFilters">Clear</button>
+    </div>
+    <div id="apptTableWrap">
+      <div class="empty">Loading appointments…</div>
+    </div>
+  </section>
+
+  <!-- Complaints -->
+  <section>
+    <div class="section-head">
+      <h2>Complaints</h2>
+      <span class="section-sub">Logged via WhatsApp, mirrored to Google Sheets</span>
+    </div>
+    <div id="complaintsWrap">
+      <div class="empty">Loading complaints…</div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+let API_BASE = $('apiBase').value.replace(/\/$/, '');
+let CURRENT_DOCTOR = $('doctorSelect').value;
+
+function showError(msg){
+  const el = $('errorBanner');
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function setLive(ok){
+  $('statusDot').className = 'status-dot ' + (ok ? 'live' : 'down');
+}
+
+async function apiGet(path){
+  const res = await fetch(API_BASE + path);
+  if (!res.ok){
+    let detail = res.statusText;
+    try { const j = await res.json(); detail = j.detail?.message || j.detail || detail; } catch(e){}
+    throw new Error(`${res.status} ${detail}`);
+  }
+  return res.json();
+}
+
+function fmtTime(hhmm){
+  const [h, m] = hhmm.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = ((h + 11) % 12) + 1;
+  return `${h12}:${String(m).padStart(2,'0')} ${period}`;
+}
+
+function fmtDate(iso){
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+}
+
+function initials(name){
+  return name.trim().split(/\s+/).slice(0,2).map(w => w[0]?.toUpperCase() || '').join('');
+}
+
+// ---------- Doctors ----------
+async function loadDoctors(){
+  const doctors = await apiGet('/api/doctors');
+  const sel = $('doctorSelect');
+  sel.innerHTML = '';
+  Object.keys(doctors).forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    sel.appendChild(opt);
+  });
+  CURRENT_DOCTOR = sel.value;
+}
+
+// ---------- Summary (stats + timeline + complaints snapshot) ----------
+async function loadSummary(){
+  const data = await apiGet(`/api/dashboard/summary?doctor_name=${encodeURIComponent(CURRENT_DOCTOR)}`);
+
+  $('overviewSub').textContent = `${data.doctor.name} · ${data.doctor.specialty}`;
+  $('statToday').textContent = data.today.count;
+  $('statTodaySub').textContent = `of ${totalSlotsForDoctor(data.doctor)} slots · PKR ${data.doctor.fee_pkr} standard fee`;
+  $('statWeek').textContent = data.week.count;
+  $('statWeekSub').textContent = `${data.week.start} → ${data.week.end}`;
+  $('statScheduled').textContent = data.status_counts.Scheduled ?? 0;
+  $('statComplaints').textContent = data.complaints.total;
+
+  renderTimeline(data);
+  renderComplaints(data.complaints.recent, data.complaints.total);
+}
+
+function totalSlotsForDoctor(doctor){
+  const [startH, startM] = doctor.hours.split(' - ')[0].split(':').map(Number);
+  const [endH, endM] = doctor.hours.split(' - ')[1].split(':').map(Number);
+  const totalMin = (endH * 60 + endM) - (startH * 60 + startM);
+  return Math.floor(totalMin / doctor.slot_minutes);
+}
+
+function renderTimeline(data){
+  $('timelineDate').textContent = fmtDate(data.today.date);
+  $('timelineHours').textContent = data.doctor.hours + ` · ${data.doctor.slot_minutes}-min slots`;
+  $('chairSub').textContent = `${data.doctor.hours} · ${data.doctor.slot_minutes}-min slots`;
+
+  const [startH, startM] = data.doctor.hours.split(' - ')[0].split(':').map(Number);
+  const [endH, endM] = data.doctor.hours.split(' - ')[1].split(':').map(Number);
+  const slotMin = data.doctor.slot_minutes;
+
+  const byTime = {};
+  data.today.appointments.forEach(a => { byTime[a.appt_time] = a; });
+
+  const rail = $('rail');
+  rail.innerHTML = '';
+
+  let cur = startH * 60 + startM;
+  const end = endH * 60 + endM;
+  let any = false;
+
+  while (cur + slotMin <= end){
+    any = true;
+    const hh = String(Math.floor(cur/60)).padStart(2,'0');
+    const mm = String(cur%60).padStart(2,'0');
+    const key = `${hh}:${mm}`;
+    const appt = byTime[key];
+
+    const div = document.createElement('div');
+    if (appt){
+      const statusClass = appt.status === 'Cancelled' ? 'cancelled' : (appt.status === 'Completed' ? 'completed' : '');
+      div.className = `slot booked ${statusClass}`;
+      div.innerHTML = `<span class="t">${fmtTime(key)}</span><span class="name">${initials(appt.patient_name)}</span>`;
+      div.title = `${appt.patient_name} · ${appt.status} · ${appt.phone}`;
+    } else {
+      div.className = 'slot';
+      div.innerHTML = `<span class="t">${fmtTime(key)}</span>`;
+    }
+    rail.appendChild(div);
+    cur += slotMin;
+  }
+
+  if (!any){
+    rail.innerHTML = '<div class="empty">The doctor is not scheduled to be in clinic today.</div>';
+  }
+}
+
+// ---------- Appointments table ----------
+async function loadAppointments(){
+  const params = new URLSearchParams();
+  params.set('doctor_name', CURRENT_DOCTOR);
+  if ($('fStart').value) params.set('start', $('fStart').value);
+  if ($('fEnd').value) params.set('end', $('fEnd').value);
+  if ($('fStatus').value) params.set('status', $('fStatus').value);
+  if ($('fSearch').value.trim()) params.set('q', $('fSearch').value.trim());
+
+  const rows = await apiGet(`/api/appointments?${params.toString()}`);
+  $('apptCountSub').textContent = `${rows.length} appointment${rows.length === 1 ? '' : 's'}`;
+
+  const wrap = $('apptTableWrap');
+  if (rows.length === 0){
+    wrap.innerHTML = '<div class="empty">No appointments match these filters.</div>';
+    return;
+  }
+
+  const table = document.createElement('table');
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Date</th><th>Time</th><th>Patient</th><th>Phone</th><th>Status</th><th>Fee</th><th>ID</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map(r => `
+        <tr>
+          <td>${r.appt_date}</td>
+          <td class="time">${fmtTime(r.appt_time)}</td>
+          <td>${escapeHtml(r.patient_name)}</td>
+          <td class="time">${escapeHtml(r.phone)}</td>
+          <td><span class="pill ${r.status}">${r.status}</span></td>
+          <td>PKR ${r.fee_pkr}</td>
+          <td class="id">#${r.appointment_id}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  `;
+  wrap.innerHTML = '';
+  wrap.appendChild(table);
+}
+
+// ---------- Complaints ----------
+function renderComplaints(recent, total){
+  const wrap = $('complaintsWrap');
+  if (!recent || recent.length === 0){
+    wrap.innerHTML = '<div class="empty">No complaints logged. This section will fill in as patients raise issues over WhatsApp.</div>';
+    return;
+  }
+  wrap.innerHTML = recent.map(c => `
+    <div class="complaint-card">
+      <div class="complaint-head">
+        <span class="who">${escapeHtml(c.name)}</span>
+        <span class="when">${new Date(c.date_time).toLocaleString()}</span>
+      </div>
+      <div class="complaint-contact">${escapeHtml(c.email)} · ${escapeHtml(c.phone_number)}</div>
+      <div class="complaint-body">${escapeHtml(c.complaint)}</div>
+      <span class="complaint-ticket">${escapeHtml(c.ticket_id)}</span>
+    </div>
+  `).join('') + (total > recent.length ? `<div class="section-sub" style="margin-top:6px;">Showing ${recent.length} most recent of ${total} total.</div>` : '');
+}
+
+async function loadAllComplaints(){
+  // Full list (used only if you want to expand beyond the 5-item snapshot).
+  try {
+    const rows = await apiGet('/api/complaints?limit=200');
+    return rows;
+  } catch(e){ return []; }
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+// ---------- Orchestration ----------
+async function refreshAll(){
+  API_BASE = $('apiBase').value.replace(/\/$/, '');
+  showError('');
+  try{
+    await loadDoctors();
+    CURRENT_DOCTOR = $('doctorSelect').value;
+    await Promise.all([loadSummary(), loadAppointments()]);
+    setLive(true);
+  } catch (e){
+    setLive(false);
+    showError(`Couldn't reach the API at ${API_BASE} — ${e.message}. Make sure clinic_appointment_api.py is running (uvicorn clinic_appointment_api:app --port 8001) and the address above matches.`);
+  }
+}
+
+$('refreshBtn').addEventListener('click', refreshAll);
+$('doctorSelect').addEventListener('change', () => { CURRENT_DOCTOR = $('doctorSelect').value; loadSummary(); loadAppointments(); });
+$('applyFilters').addEventListener('click', loadAppointments);
+$('clearFilters').addEventListener('click', () => {
+  $('fStart').value = ''; $('fEnd').value = ''; $('fStatus').value = ''; $('fSearch').value = '';
+  loadAppointments();
+});
+$('apiBase').addEventListener('keydown', (e) => { if (e.key === 'Enter') refreshAll(); });
+
+refreshAll();
+setInterval(refreshAll, 60000); // auto-refresh every minute
+</script>
+
+</body>
+</html>

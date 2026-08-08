@@ -1,0 +1,37 @@
+# --- Web framework / WhatsApp ---
+fastapi
+uvicorn[standard]
+pywa
+python-dotenv
+
+# --- LLM orchestration ---
+langchain-core
+langchain-classic
+langchain-community
+langchain-google-genai
+langchain-text-splitters
+langgraph
+langgraph-checkpoint-sqlite
+
+# --- Structured output / validation ---
+pydantic
+email-validator
+
+# --- STT / vision via OpenRouter (OpenAI-compatible client) ---
+openai
+
+# --- RAG: embeddings + vector store ---
+sentence-transformers
+faiss-cpu
+
+# --- HTTP calls to the clinic appointment backend ---
+requests
+
+# --- Complaint logging ---
+gspread
+
+# --- Redis: message dedupe + per-patient distributed locking ---
+redis
+
+# --- Timezone data (required on Windows; zoneinfo has no built-in IANA db there) ---
+tzdata
