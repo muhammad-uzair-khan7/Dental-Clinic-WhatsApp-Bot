@@ -7,6 +7,13 @@ load_dotenv()
 CLINIC_BASE_URL = os.getenv("CLINIC_BASE_URL")
 TIMEOUT_SECONDS = 5
 
+# Must match INTERNAL_API_KEY set on the clinic_appointment_api.py service.
+# Only needed on calls that hit routes gated with verify_internal_key —
+# right now that's just get_appointment_status(), since /api/availability
+# and /api/appointments/book were left open (see clinic_appointment_api.py).
+INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY")
+_AUTH_HEADERS = {"X-API-Key": INTERNAL_API_KEY}
+
 
 def get_doctor_availability(doctor_name: str, date: str) -> dict:
     """
@@ -86,9 +93,17 @@ def get_appointment_status(appointment_id: int) -> dict:
         {"found": False, "error": "Appointment 9999 not found"}
     """
     try:
-        resp = requests.get(f"{CLINIC_BASE_URL}/api/appointments/{appointment_id}", timeout=TIMEOUT_SECONDS)
+        # This route (GET /api/appointments/{id}) is gated with
+        # verify_internal_key on the API side, so it needs the header.
+        resp = requests.get(
+            f"{CLINIC_BASE_URL}/api/appointments/{appointment_id}",
+            headers=_AUTH_HEADERS,
+            timeout=TIMEOUT_SECONDS,
+        )
         if resp.status_code == 404:
             return {"found": False, "error": resp.json().get("detail", "Appointment not found")}
+        if resp.status_code == 401:
+            return {"found": False, "error": "Clinic system authentication failed — check INTERNAL_API_KEY."}
         resp.raise_for_status()
         data = resp.json()
         data["found"] = True

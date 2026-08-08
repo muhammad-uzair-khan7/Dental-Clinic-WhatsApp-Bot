@@ -22,6 +22,7 @@ Endpoints:
 """
 
 import json
+import os
 import secrets
 import sqlite3
 import time
@@ -30,12 +31,15 @@ from datetime import date as date_cls
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, EmailStr, Field, field_validator
+
+load_dotenv()
 
 DB_PATH = "clinic_data.db"
 
@@ -258,6 +262,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# This API is public on Render's free tier (private services require a paid
+# plan), so any route that returns patient data (names, phone numbers,
+# emails, complaint text) needs its own gate — the URL being unlisted isn't
+# protection. INTERNAL_API_KEY must be set to the same value on this service
+# and on the bot service that calls it.
+INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY")
+
+
+def verify_internal_key(x_api_key: str = Header(None)):
+    if not INTERNAL_API_KEY or x_api_key != INTERNAL_API_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
 
 @app.on_event("startup")
 def on_startup():
@@ -278,7 +294,7 @@ def complaint_request(payload: ComplaintSchema):
     return ComplaintTicketResponse(success=True, ticket_id=ticket_id, name=payload.name)
 
 
-@app.get("/api/complaints", tags=["Complaints"])
+@app.get("/api/complaints", tags=["Complaints"], dependencies=[Depends(verify_internal_key)])
 def list_complaints(limit: int = Query(200, ge=1, le=1000)):
     """
     List logged complaints, most recent first. This reads the local SQLite
@@ -394,7 +410,7 @@ def book_appointment(payload: BookAppointmentRequest):
 
 
 # ---- Appointment status / lookup -----------------------------------------
-@app.get("/api/appointments/{appointment_id}", response_model=AppointmentResponse, tags=["Appointments"])
+@app.get("/api/appointments/{appointment_id}", response_model=AppointmentResponse, tags=["Appointments"], dependencies=[Depends(verify_internal_key)])
 def get_appointment(appointment_id: int):
     """Look up an appointment's current status by ID."""
     with get_conn() as conn:
@@ -446,7 +462,7 @@ def cancel_appointment(appointment_id: int):
     )
 
 
-@app.get("/api/appointments", tags=["Appointments"])
+@app.get("/api/appointments", tags=["Appointments"], dependencies=[Depends(verify_internal_key)])
 def list_appointments(
     doctor_name: Optional[str] = None,
     date: Optional[str] = None,
@@ -498,7 +514,7 @@ def list_appointments(
 
 
 # ---- Dashboard -------------------------------------------------------------
-@app.get("/api/dashboard/summary", tags=["Dashboard"])
+@app.get("/api/dashboard/summary", tags=["Dashboard"], dependencies=[Depends(verify_internal_key)])
 def dashboard_summary(doctor_name: str = "Dr. Muhammad Zubair Yousuf"):
     """
     One bundled call for the dashboard's top-of-page view: today's schedule,

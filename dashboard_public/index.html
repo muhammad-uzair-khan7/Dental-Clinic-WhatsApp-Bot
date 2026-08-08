@@ -264,6 +264,7 @@
   <div class="conn">
     <span class="status-dot" id="statusDot"></span>
     <input id="apiBase" type="text" value="http://localhost:8001" spellcheck="false" />
+    <input id="apiKey" type="password" placeholder="INTERNAL_API_KEY" spellcheck="false" style="min-width:160px;" />
     <select id="doctorSelect"><option>Dr. Muhammad Zubair Yousuf</option></select>
     <button class="btn ghost" id="refreshBtn">Refresh</button>
   </div>
@@ -379,7 +380,9 @@ function setLive(ok){
 }
 
 async function apiGet(path){
-  const res = await fetch(API_BASE + path);
+  const res = await fetch(API_BASE + path, {
+    headers: { 'X-API-Key': $('apiKey').value }
+  });
   if (!res.ok){
     let detail = res.statusText;
     try { const j = await res.json(); detail = j.detail?.message || j.detail || detail; } catch(e){}
