@@ -21,9 +21,7 @@ Endpoints:
     GET  /api/dashboard/summary          (dashboard)
 """
 
-import json
 import os
-import secrets
 import sqlite3
 import time
 from contextlib import contextmanager
@@ -34,9 +32,7 @@ from typing import Optional
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 load_dotenv()

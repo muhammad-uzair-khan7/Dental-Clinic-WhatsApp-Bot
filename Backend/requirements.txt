@@ -1,8 +1,5 @@
-# --- Web framework ---
 fastapi
 uvicorn[standard]
- 
-# --- Validation (EmailStr support for ComplaintSchema) ---
 pydantic
 email-validator
- 
+python-dotenv
