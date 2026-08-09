@@ -622,9 +622,12 @@ def process_message(message: types.Message, incoming_text: str):
         except Exception:
             traceback.print_exc()
             ai_reply = "Sorry, I'm having trouble right now. Please try again in a moment."
-
+        print("AI REPLY: ", ai_reply)
         print(f"Processed in {time.time() - start:.2f}s", flush=True)
-        wa.send_message(to=message.from_user.wa_id, text=ai_reply)
+        try:
+            wa.send_message(to=message.from_user.wa_id, text=ai_reply)
+        except Exception as e:
+            print(f"{e}")
     finally:
         try:
             lock.release()
