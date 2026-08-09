@@ -30,8 +30,10 @@ PHONENUMBER_ID = os.getenv("PHONENUMBER_ID")
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 APP_ID = os.getenv("APP_ID")
 APP_SECRET = os.getenv("APP_SECRET")
+CALLBACK_URL= os.getenv("CALLBACK_URL")
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
-GOOGLE_GENERATIVE_AI = os.getenv("GEMINI_API_KEY")
+GOOGLE_GENERATIVE_AI = os.getenv("GOOGLE_API_KEY")
+GEMINI_API_KEY= os.getenv("GEMINI_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 CLINIC_BASE_URL = os.getenv("CLINIC_BASE_URL")  # used inside appointment_management.py / patient_complaint.py
 
@@ -43,7 +45,7 @@ wa = WhatsApp(
     token=ACCESS_TOKEN,
     app_id=APP_ID,
     app_secret=APP_SECRET,
-    callback_url="https://dental-clinic-whatsapp-bot-1.onrender.com",  # your stable domain, e.g. https://clinicbot.yourdomain.com
+    callback_url=CALLBACK_URL,  # your stable domain, e.g. https://clinicbot.yourdomain.com
     server=app,
     webhook_endpoint="/whatsapp/webhook",
     verify_token=VERIFY_TOKEN,
@@ -263,13 +265,13 @@ def classifier_agent(state: BotState):
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 from langchain_classic.chains.retrieval import create_retrieval_chain
 from langchain_community.document_loaders.text import TextLoader
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 _VECTORSTORE_PATH = "vectorstore"
 _CLINIC_DETAILS_PATH = "./clinic_details.txt"
-_embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+_embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-001", google_api_key=GEMINI_API_KEY)
 
 
 def build_or_load_vectorstore():
