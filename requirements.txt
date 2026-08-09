@@ -21,7 +21,6 @@ email-validator
 openai
 
 # --- RAG: embeddings + vector store ---
-sentence-transformers
 faiss-cpu
 
 # --- HTTP calls to the clinic appointment backend ---
